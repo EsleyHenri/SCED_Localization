@@ -20,7 +20,9 @@ import inspect
 import importlib
 import urllib.request
 import time
-import dropbox
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
+from google.oauth2.service_account import Credentials as ServiceAccountCredentials
 import uuid
 import glob
 import copy
@@ -45,7 +47,8 @@ parser.add_argument('--ahdb-dir', default='repos/arkhamdb-json-data', help='The 
 parser.add_argument('--mod-dir-primary', default='repos/SCED', help='The directory to the primary mod repository')
 parser.add_argument('--mod-dir-secondary', default='repos/SCED-downloads', help='The directory to the secondary mod repository')
 parser.add_argument('--url-file', default='cache/urls.json', help='The file to keep the url mapping')
-parser.add_argument('--dropbox-token', default=None, help='The dropbox token for uploading translated deck images')
+parser.add_argument('--gdrive-credentials', default=None, help='Path to Google Drive service account JSON credentials file')
+parser.add_argument('--gdrive-folder-id', default=None, help='ID of the Google Drive parent folder to upload deck images into')
 parser.add_argument('--new-link', action='store_true', help='Whether to create new URL while uploading deck images')
 parser.add_argument('--step', default=None, choices=steps, help='The particular automation step to run')
 args = parser.parse_args()
@@ -2495,34 +2498,52 @@ def pack_images():
     bar.finish()
 
 def upload_images():
-    dbx = dropbox.Dropbox(args.dropbox_token)
-    folder = f'/SCED_Localization_Deck_Images_{args.lang}'
-    # NOTE: Create a folder if not already exists.
-    try:
-        dbx.files_create_folder(folder)
-    except:
-        pass
+    SCOPES = ['https://www.googleapis.com/auth/drive']
+    creds = ServiceAccountCredentials.from_service_account_file(args.gdrive_credentials, scopes=SCOPES)
+    service = build('drive', 'v3', credentials=creds)
+
+    # Find or create subfolder inside the parent folder.
+    folder_name = f'SCED_Localization_{args.lang}'
+    query = (f"name='{folder_name}' and mimeType='application/vnd.google-apps.folder'"
+             f" and '{args.gdrive_folder_id}' in parents and trashed=false")
+    existing_folders = service.files().list(q=query, fields='files(id)').execute().get('files', [])
+    if existing_folders:
+        folder_id = existing_folders[0]['id']
+    else:
+        folder_meta = {'name': folder_name, 'mimeType': 'application/vnd.google-apps.folder',
+                       'parents': [args.gdrive_folder_id]}
+        folder_id = service.files().create(body=folder_meta, fields='id').execute()['id']
+
     decks_dir = f'{args.decks_dir}/{args.lang}'
     filenames = os.listdir(decks_dir)
     bar = Bar('Uploading', max=len(filenames))
     for filename in filenames:
         bar.next()
-        # print(f'Uploading {filename}...')
-        with open(f'{decks_dir}/{filename}', 'rb') as file:
-            deck_image_data = file.read()
-            deck_filename = f'{folder}/{filename}'
-            # NOTE: Setting overwrite to true so that the old deck image is replaced, and the sharing link still maintains.
-            image = dbx.files_upload(deck_image_data, deck_filename, mode=dropbox.files.WriteMode.overwrite)
-            # NOTE: Remove all existing shared links if we try to force creating new links.
-            if args.new_link:
-                for link in dbx.sharing_list_shared_links(image.path_display, direct_only=True).links:
-                    dbx.sharing_revoke_shared_link(link.url)
-            # NOTE: Dropbox will reuse the old sharing link if there's already one exist.
-            url = dbx.sharing_create_shared_link(image.path_display, short_url=True).url
-            # NOTE: Get direct download link from the dropbox sharing link.
-            url = url.replace('?dl=0', '').replace('www.dropbox.com', 'dl.dropboxusercontent.com')
-            url_id = filename.split('.')[0]
-            set_url_id(url_id, url)
+        filepath = f'{decks_dir}/{filename}'
+        url_id = filename.split('.')[0]
+
+        # Check for an existing file with the same name in this folder.
+        query = f"name='{filename}' and '{folder_id}' in parents and trashed=false"
+        existing = service.files().list(q=query, fields='files(id)').execute().get('files', [])
+
+        media = MediaFileUpload(filepath, mimetype='image/jpeg', resumable=True)
+
+        if existing and not args.new_link:
+            # NOTE: Overwrite content of existing file so the file id (and thus the URL) stays the same.
+            file_id = existing[0]['id']
+            service.files().update(fileId=file_id, media_body=media).execute()
+        else:
+            # NOTE: Delete old files when forcing new links, then create fresh.
+            for f in existing:
+                service.files().delete(fileId=f['id']).execute()
+            file_meta = {'name': filename, 'parents': [folder_id]}
+            file_id = service.files().create(body=file_meta, media_body=media, fields='id').execute()['id']
+            # Make the new file publicly readable so TTS can load it.
+            service.permissions().create(fileId=file_id, body={'type': 'anyone', 'role': 'reader'}).execute()
+
+        # NOTE: Direct image URL format recognised by Tabletop Simulator.
+        url = f'https://lh3.googleusercontent.com/d/{file_id}'
+        set_url_id(url_id, url)
     bar.finish()
 
 updated_files = {}
