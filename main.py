@@ -2498,6 +2498,8 @@ def pack_images():
     bar.finish()
 
 def upload_images():
+    print('Upload step disabled.')
+    return
     SCOPES = ['https://www.googleapis.com/auth/drive']
     creds = ServiceAccountCredentials.from_service_account_file(args.gdrive_credentials, scopes=SCOPES)
     service = build('drive', 'v3', credentials=creds)
