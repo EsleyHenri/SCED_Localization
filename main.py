@@ -2289,7 +2289,7 @@ def translate_sced_card_object(object, metadata, card):
         if card['type_code'] == 'key': back_is_front = False
 
         # NOTE: If back side has a separate entry, then it's treated as if it's the front side of the card.
-        if deck['UniqueBack']:
+        if deck.get('UniqueBack', False):
             translate_sced_card(back_url, deck_w, deck_h, deck_x, deck_y, back_is_front, back_card, metadata)
         else:
             # NOTE: Even if the back is non-unique, SCED may still use it for interesting cards, e.g. Sophie: It Was All My Fault.
