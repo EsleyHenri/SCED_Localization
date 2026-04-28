@@ -2479,22 +2479,23 @@ def pack_images():
     images_base = 'SE_Generator/images'
     pack_dirs = sorted([d for d in glob.glob(f'{images_base}/*') if os.path.isdir(d)])
     for image_dir in pack_dirs:
+        pack_code = os.path.basename(image_dir)
         filenames = [f for f in os.listdir(image_dir) if f.endswith('.png')]
-        bar = Bar(f'Packing {os.path.basename(image_dir)}', max=len(filenames))
+        bar = Bar(f'Packing {pack_code}', max=len(filenames))
         for filename in filenames:
             bar.next()
             result_id = filename.split('.')[0]
             deck_url_id, deck_w, deck_h, deck_x, deck_y, rotate, _ = decode_result_id(result_id)
             # NOTE: We use the English version of the url as the base image to pack to avoid repeated saving that reduces quality.
             deck_url = url_map['en'][deck_url_id]
-            deck_image_filename = download_deck_image(deck_url)
+            deck_image_filename = download_deck_image(deck_url, pack_code)
             if deck_url_id not in deck_images:
                 deck_image = Image.open(deck_image_filename)
 
                 if deck_image.mode == 'P':
                     deck_image = deck_image.convert('RGB')
 
-                deck_images[deck_url_id] = deck_image
+                deck_images[deck_url_id] = deck_image.copy()
 
             deck_image = deck_images[deck_url_id]
             card_image_filename = f'{image_dir}/{filename}'
