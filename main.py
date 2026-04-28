@@ -2343,6 +2343,8 @@ def process_player_cards(callback):
                 metadata = json.loads(metadata_file.read())
                 if is_translatable(metadata):
                     card = download_card(metadata['id'])
+                    if card is None:
+                        continue
                     if eval(args.filter):
                         object_filename = metadata_filename.replace('.gmnotes', '.json')
                         with open(object_filename, 'r', encoding='utf-8') as object_file:
