@@ -2358,13 +2358,10 @@ def process_encounter_cards(callback, **kwargs):
 #         'challenge_relics_of_the_past.json'
 #    ]
 
-    debug_files = 0
-    debug_cards = 0
     for top_folder in top_folders:
         for root, dirs, files in os.walk(f'{repo_folder}/decomposed/{top_folder}'):
             for name in files:
                 if name.endswith((".json")):
-                    debug_files += 1
                     campaign_filename = os.path.join(root, name)
                     
                     with open(campaign_filename, 'r', encoding='utf-8') as object_file:
@@ -2403,10 +2400,7 @@ def process_encounter_cards(callback, **kwargs):
 
                         campaign = json.loads(object_file.read())
 
-                        found = find_encounter_objects(campaign)
-                        if found:
-                            debug_cards += len(found)
-                        for object in found:
+                        for object in find_encounter_objects(campaign):
                             if object.get('Name', None) == 'Deck':
                                 callback(object, None, None, campaign_filename, campaign)
                             else:
@@ -2415,8 +2409,6 @@ def process_encounter_cards(callback, **kwargs):
                                     card = download_card(metadata['id'])
                                     if card and eval(args.filter):
                                         callback(object, metadata, card, campaign_filename, campaign)
-
-    print(f'DEBUG: {debug_files} JSON files scanned, {debug_cards} card objects found')
 
 def write_csv():
     data_dir = 'SE_Generator/data'
