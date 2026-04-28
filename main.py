@@ -1967,6 +1967,13 @@ def download_deck_image(url, pack_code=None):
     ensure_dir(decks_folder)
     url_id = get_en_url_id(url)
     filename = f'{decks_folder}/{url_id}.jpg'
+    if os.path.isfile(filename):
+        try:
+            with Image.open(filename) as img:
+                img.verify()
+        except Exception:
+            print(f'Cache corrompido, re-baixando {url_id}.jpg...')
+            os.remove(filename)
     if not os.path.isfile(filename):
         print(f'Downloading {url_id}.jpg...')
         urllib.request.urlretrieve(url, filename)
