@@ -1804,14 +1804,16 @@ def download_card(ahdb_id):
         cards = []
         with open(filename, 'r', encoding='utf-8') as file:
             cards.extend(json.loads(file.read()))
-        for idx, card in enumerate(cards):
-            if 'alternate_of' in card:
-                cards.append(cards.pop(idx))
         # NOTE: Add taboo cards with -t suffix.
         with open(f'translations/{lang_code}/taboo.json', 'r', encoding='utf-8') as file:
             cards.extend(json.loads(file.read()))
+        # NOTE: Process non-alternate cards first so alternate_of references resolve correctly.
         for card in cards:
-            ahdb[card['code']] = card
+            if 'alternate_of' not in card:
+                ahdb[card['code']] = card
+        for card in cards:
+            if 'alternate_of' in card:
+                ahdb[card['code']] = card
 
             if 'back_link' in card and card['code'][-1] == 'a':
                 pid = f'{card["code"][:-1]}'
