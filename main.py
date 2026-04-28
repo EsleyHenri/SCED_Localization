@@ -1067,6 +1067,15 @@ def get_se_encounter_total(card, sheet):
         'mysteries_abound': 4,
         'the_midwinter_gala': 78,
         'written_in_rock': 38, 'hemlock_house': 44, 'the_silent_heath': 26, 'the_lost_sister': 31, 'the_thing_in_the_depths': 39, 'the_twisted_hollow': 34, 'the_longest_night': 38, 'fate_of_the_vale': 40, 'the_first_day': 4, 'the_second_day': 4, 'the_final_day': 4, 'day_of_rest': 2, 'day_of_rain': 6, 'day_of_the_feast': 10, 'residents': 20, 'the_vale': 17, 'heirlooms': 3, 'horrors_in_the_rock': 12, 'agents_of_the_colour': 4, 'transfiguration': 4, 'blight': 4, 'refractions': 5, 'the_forest': 11, 'myconids': 5, 'mutations': 4, 'fire': 5,
+        # The Drowned City
+        'tasks': 16, 'one_last_job': 18, 'tdc_expedition': 6, 'tdc_flood': 3,
+        'court_of_the_ancients': 28, 'obsidian_canyons': 38, 'the_apiary': 35,
+        'the_drowned_quarter': 23, 'the_grand_vault': 27, 'the_western_wall': 21,
+        'the_doom_of_arkham_part_1': 7, 'the_doom_of_arkham_part_2': 36,
+        'sepulchre_of_the_sleeper': 10, 'the_inescapable': 2,
+        'alien_machinery': 2, 'cosmic_legacy': 2, 'deep_ones': 3, 'domination': 3,
+        'dreams': 2, 'elder_mist': 2, 'pilgrims': 2, 'rlyeh': 2,
+        'star_spawn': 4, 'stowaways': 2, 'undersea_creatures': 3,
         None: 0,
     }
     return str(encounter_map[encounter])
