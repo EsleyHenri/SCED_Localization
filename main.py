@@ -1888,6 +1888,7 @@ url_map = None
 def read_url_map():
     global url_map
     if not os.path.isfile(args.url_file):
+        os.makedirs(os.path.dirname(args.url_file), exist_ok=True)
         with open(args.url_file, 'w', encoding='utf-8') as file:
             json_str = json.dumps({}, indent=2, ensure_ascii=False)
             file.write(json_str)
