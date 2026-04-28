@@ -2370,7 +2370,7 @@ def process_encounter_cards(callback, **kwargs):
                                 if type(object.get('GMNotes', '')) != dict and object.get('GMNotes', '').startswith('{'):
                                      object['GMNotes'] = json.loads(object['GMNotes'])
 
-                                if type(object.get('GMNotes', '')) != dict and object.get('GMNotes_path', '').endswith('.gmnotes'):
+                                if (not isinstance(object.get('GMNotes', ''), dict) or 'id' not in object.get('GMNotes', {})) and object.get('GMNotes_path', '').endswith('.gmnotes'):
                                     name = object.get('GMNotes_path', '').split('/')[-1]
                                     gmnotes_filename =  os.path.join(root, name)
                                     with open(gmnotes_filename, 'r', encoding='utf-8') as gmnotes_file:
