@@ -2359,7 +2359,7 @@ def process_encounter_cards(callback, **kwargs):
     for top_folder in top_folders:
         for root, dirs, files in os.walk(f'{repo_folder}/decomposed/{top_folder}'):
             for name in files:
-                if name.endswith((".json")) and '\\The Path to Carcosa' in root:
+                if name.endswith((".json")):
                     campaign_filename = os.path.join(root, name)
                     
                     with open(campaign_filename, 'r', encoding='utf-8') as object_file:
