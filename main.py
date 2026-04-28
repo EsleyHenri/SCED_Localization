@@ -2629,8 +2629,8 @@ def update_sced_files():
             file.write(json_str)
 
 if args.step in [None, steps[0]]:
+    process_player_cards(translate_sced_object)
     process_encounter_cards(translate_sced_object)
-    # process_player_cards(translate_sced_object)
     write_csv()
 
 if args.step in [None, steps[1]]:
