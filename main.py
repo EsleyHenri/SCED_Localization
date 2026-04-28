@@ -26,6 +26,7 @@ from google.oauth2.service_account import Credentials as ServiceAccountCredentia
 import uuid
 import glob
 import copy
+from collections import defaultdict
 import warnings
 from PIL import Image
 from bs4 import BeautifulSoup, MarkupResemblesLocatorWarning
@@ -1937,8 +1938,8 @@ def decode_result_id(result_id):
     parts = result_id.split('-')
     return parts[0], int(parts[1]), int(parts[2]), int(parts[3]), int(parts[4]), bool(int(parts[5])), int(parts[6])
 
-def download_deck_image(url):
-    decks_folder = f'{args.cache_dir}/decks'
+def download_deck_image(url, pack_code=None):
+    decks_folder = f'{args.cache_dir}/decks/{pack_code}' if pack_code else f'{args.cache_dir}/decks'
     ensure_dir(decks_folder)
     url_id = get_en_url_id(url)
     filename = f'{decks_folder}/{url_id}.jpg'
@@ -1947,8 +1948,8 @@ def download_deck_image(url):
         urllib.request.urlretrieve(url, filename)
     return filename
 
-def crop_card_image(result_id, deck_image_filename):
-    cards_folder = f'{args.cache_dir}/cards'
+def crop_card_image(result_id, deck_image_filename, pack_code=None):
+    cards_folder = f'{args.cache_dir}/cards/{pack_code}' if pack_code else f'{args.cache_dir}/cards'
     ensure_dir(cards_folder)
     filename = f'{cards_folder}/{result_id}.png'
     if not os.path.isfile(filename):
@@ -1994,7 +1995,7 @@ se_types = [
     'key_back',
     'enemy_location'
 ]
-se_cards = dict(zip(se_types, [[] for _ in range(len(se_types))]))
+se_cards = defaultdict(list)
 result_set = set()
 
 def get_decks(object):
@@ -2093,8 +2094,9 @@ def translate_sced_card(url, deck_w, deck_h, deck_x, deck_y, is_front, card, met
     else:
         se_type = None
 
-    deck_image_filename = download_deck_image(url)
-    image_filename = crop_card_image(result_id, deck_image_filename)
+    pack_code = card.get('pack_code')
+    deck_image_filename = download_deck_image(url, pack_code)
+    image_filename = crop_card_image(result_id, deck_image_filename, pack_code)
     image = Image.open(image_filename)
     template_width = 375
     template_height = 525
@@ -2141,7 +2143,7 @@ def translate_sced_card(url, deck_w, deck_h, deck_x, deck_y, is_front, card, met
         move_map_se_type = se_type
     image_move_x, image_move_y = move_map[move_map_se_type]
     image_filename = os.path.abspath(image_filename)
-    se_cards[se_type].append(get_se_card(result_id, card, metadata, image_filename, image_scale, image_move_x, image_move_y))
+    se_cards[(pack_code, se_type)].append(get_se_card(result_id, card, metadata, image_filename, image_scale, image_move_x, image_move_y))
     result_set.add(result_id)
 
 def translate_sced_card_object(object, metadata, card):
@@ -2413,17 +2415,19 @@ def process_encounter_cards(callback, **kwargs):
 def write_csv():
     data_dir = 'SE_Generator/data'
     recreate_dir(data_dir)
-    for se_type in se_types:
-        print(f'Writing {se_type}.csv...')
-        filename = f'{data_dir}/{se_type}.csv'
+    for (pack_code, se_type), components in se_cards.items():
+        if not components:
+            continue
+        pack_dir = f'{data_dir}/{pack_code}'
+        ensure_dir(pack_dir)
+        print(f'Writing {pack_code}/{se_type}.csv...')
+        filename = f'{pack_dir}/{se_type}.csv'
         with open(filename, mode='w', newline='', encoding='utf-8') as file:
-            components = se_cards[se_type]
-            if len(components):
-                fields = list(components[0].keys())
-                writer = csv.DictWriter(file, fieldnames=fields)
-                writer.writeheader()
-                for component in components:
-                    writer.writerow(component)
+            fields = list(components[0].keys())
+            writer = csv.DictWriter(file, fieldnames=fields)
+            writer.writeheader()
+            for component in components:
+                writer.writerow(component)
 
 def generate_images():
     # NOTE: Update SE font preferences before running the generation script.
@@ -2457,12 +2461,13 @@ def generate_images():
 def pack_images():
     deck_images = {}
     url_map, _ = read_url_map()
-    for image_dir in glob.glob('SE_Generator/images*'):
-        filenames = os.listdir(image_dir)
-        bar = Bar(f'Packing {image_dir}', max=len(filenames))
+    images_base = 'SE_Generator/images'
+    pack_dirs = sorted([d for d in glob.glob(f'{images_base}/*') if os.path.isdir(d)])
+    for image_dir in pack_dirs:
+        filenames = [f for f in os.listdir(image_dir) if f.endswith('.png')]
+        bar = Bar(f'Packing {os.path.basename(image_dir)}', max=len(filenames))
         for filename in filenames:
             bar.next()
-            # print(f'Packing {filename}...')
             result_id = filename.split('.')[0]
             deck_url_id, deck_w, deck_h, deck_x, deck_y, rotate, _ = decode_result_id(result_id)
             # NOTE: We use the English version of the url as the base image to pack to avoid repeated saving that reduces quality.
