@@ -26,6 +26,7 @@ from google.oauth2.service_account import Credentials as ServiceAccountCredentia
 import uuid
 import glob
 import copy
+import platform
 from collections import defaultdict
 import warnings
 from PIL import Image
@@ -36,10 +37,24 @@ warnings.filterwarnings("ignore", category=MarkupResemblesLocatorWarning)
 steps = ['translate', 'generate', 'pack', 'upload', 'update']
 langs = ['es', 'de', 'it', 'fr', 'ko', 'uk', 'pl', 'ru', 'zh_TW', 'zh_CN', 'pt']
 
+def _default_se_executable():
+    if platform.system() == 'Darwin':
+        return '/Applications/Strange Eons.app/Contents/Resources/app/bin/eons'
+    elif platform.system() == 'Windows':
+        return r'C:\Program Files\StrangeEons\bin\eons.exe'
+    else:
+        return 'eons'
+
+def _default_se_preferences():
+    if platform.system() == 'Windows':
+        return fr'{os.getenv("APPDATA", "")}\StrangeEons3\preferences'
+    else:
+        return os.path.expanduser('~/.StrangeEons3/preferences')
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--lang', default='ru', choices=langs, help='The language to translate into')
-parser.add_argument('--se-executable', default=r'C:\Program Files\StrangeEons\bin\eons.exe', help='The Strange Eons executable path')
-parser.add_argument('--se-preferences', default=fr'{os.getenv("APPDATA")}\StrangeEons3\preferences', help='The Strange Eons preferences file path')
+parser.add_argument('--se-executable', default=_default_se_executable(), help='The Strange Eons executable path')
+parser.add_argument('--se-preferences', default=_default_se_preferences(), help='The Strange Eons preferences file path')
 parser.add_argument('--filter', default='True', help='A Python expression filter for what cards to process')
 parser.add_argument('--repo-dir', default='repos', help='The directory to keep intermediate repositories during processing')
 parser.add_argument('--cache-dir', default='cache', help='The directory to keep intermediate resources during processing')
