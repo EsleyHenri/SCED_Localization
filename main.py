@@ -378,6 +378,7 @@ def get_se_pack(card, sheet):
     pack_map = {
         'core': 'CoreSet',
         'rcore': 'CoreSet',
+        'core_2026': 'CoreSet',
         'dwl': 'TheDunwichLegacy',
         'tmm': 'TheDunwichLegacy',
         'tece': 'TheDunwichLegacy',

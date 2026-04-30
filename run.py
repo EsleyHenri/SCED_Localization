@@ -28,6 +28,7 @@ PACKS = [
 
     # ── Core Set ──────────────────────────────────────────────────────────────
     'core', 'rcore',                    # Core Set / Revised Core Set
+  # 'core_2026',                        # Core Set 2026
 
     # ── The Dunwich Legacy ────────────────────────────────────────────────────
   # 'dwl',                              # The Dunwich Legacy
