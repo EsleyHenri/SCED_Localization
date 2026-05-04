@@ -368,6 +368,7 @@ def get_se_copyright(card, sheet):
         'tdcc': '2025',
         'enc': '2025',
         'film_fatale': '2025',
+        'core_2026': '2026',
     }
     return f'<cop> {year_map[pack]} FFG'
 
