@@ -1078,6 +1078,14 @@ def get_se_encounter_total(card, sheet):
         'alien_machinery': 2, 'cosmic_legacy': 2, 'deep_ones': 3, 'domination': 3,
         'dreams': 2, 'elder_mist': 2, 'pilgrims': 2, 'rlyeh': 2,
         'star_spawn': 4, 'stowaways': 2, 'undersea_creatures': 3,
+        # Core Set 2026
+        'spreading_flames': 11, 'queen_of_ash': 15, 'smoke_and_mirrors': 9,
+        'arkham_ch2': 12, 'cultists_ch2': 5, 'fire_ch2': 6, 'whippoorwills_ch2': 4,
+        'miskatonic_university': 5, 'arkham_sewers': 6, 'people_of_arkham': 6,
+        'ashen_pilgrims': 3, 'bad_weather': 3, 'dead_ends': 3, 'eldritch_lore': 3,
+        'flying_terrors': 3, 'gangs_of_arkham': 3, 'hallucinations': 3,
+        'mad_science': 3, 'reeking_decay': 3, 'torment': 5,
+        'arcane_lock': 1, 'bystanders': 1, 'cosmic_evils': 1,
         None: 0,
     }
     return str(encounter_map[encounter])
