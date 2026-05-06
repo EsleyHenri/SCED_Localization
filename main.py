@@ -1906,6 +1906,29 @@ def download_card(ahdb_id):
         for id in ['09557']:
             ahdb[f'{id}a'] = ahdb[id]
 
+        # NOTE: Generate taboo cards from English taboos.json for any not covered by PT taboo.json.
+        taboo_en_file = f'{download_repo(args.ahdb_dir, "Kamalisk/arkhamdb-json-data")}/taboos.json'
+        existing_taboo_codes = {code for code in ahdb if code.endswith('-t')}
+        if os.path.isfile(taboo_en_file):
+            with open(taboo_en_file, 'r', encoding='utf-8') as tf:
+                taboo_lists = json.load(tf)
+            active = next((t for t in taboo_lists if t.get('active')), taboo_lists[-1] if taboo_lists else None)
+            if active:
+                for taboo_entry in active.get('cards', []):
+                    base_code = taboo_entry['code']
+                    taboo_code = f'{base_code}-t'
+                    if taboo_code in existing_taboo_codes:
+                        continue
+                    base_card = ahdb.get(base_code)
+                    if base_card is None:
+                        continue
+                    t_card = copy.deepcopy(base_card)
+                    t_card['code'] = taboo_code
+                    for key, value in taboo_entry.items():
+                        if key != 'code':
+                            t_card[key] = value
+                    ahdb[taboo_code] = t_card
+
         # NOTE: Patching special point attributes as separate fields.
         points = {
             'shelter': ['08502', '08503', '08504', '08505', '08506', '08507', '08508', '08509', '08510', '08511', '08512', '08513', '08514'],
