@@ -1612,10 +1612,12 @@ def get_se_back_connection(metadata, index):
 
 def get_se_card(result_id, card, metadata, image_filename, image_scale, image_move_x, image_move_y):
     image_sheet = decode_result_id(result_id)[-1]
+    is_taboo = card.get('code', '').endswith('-t')
+    file_id = f'{result_id}-T' if is_taboo else result_id
     # NOTE: Use the same schema for all SE card types to avoid duplicated code. Garbage data for a card type that doesn't need it is fine,
     # so long as a value can be generated with out error.
     return {
-        'file': result_id,
+        'file': file_id,
         '$PortraitShare': '0',
         'port0Src': image_filename if image_sheet == 0 else '',
         'port0Scale': image_scale,
@@ -2537,6 +2539,8 @@ def pack_images():
         for filename in filenames:
             bar.next()
             result_id = filename.split('.')[0]
+            if result_id.endswith('-T'):
+                result_id = result_id[:-2]
             deck_url_id, deck_w, deck_h, deck_x, deck_y, rotate, _ = decode_result_id(result_id)
             # NOTE: We use the English version of the url as the base image to pack to avoid repeated saving that reduces quality.
             deck_url = url_map['en'][deck_url_id]

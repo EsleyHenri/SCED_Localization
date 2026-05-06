@@ -112,7 +112,8 @@ function process(progress) {
             let card = ResourceKit.getGameComponentFromFile(cardFile, true);
             let cardFilename = cardFile.getName();
             let fields = cardFilename.replace('.eon', '').split('-');
-            let index = parseInt(fields[fields.length - 1]);
+            let lastField = fields[fields.length - 1];
+            let index = lastField === 'T' ? parseInt(fields[fields.length - 2]) : parseInt(lastField);
             let ppi = 300;
             let synthesizeBleedMargin = false;
             let imageFile = new File(imagePackFolder, cardFilename.replace('.eon', '.png'));
