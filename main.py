@@ -191,6 +191,7 @@ def get_se_slot(card, index):
         'Body': 'Body',
         'Accessory': 'Accessory',
         'Tarot': 'Tarot',
+        'Head': 'None',  # NOTE: Head slot not yet supported in SE plugin
     }
     slots = get_field(card, 'real_slot', '')
     slots = [slot_map[slot.strip()] for slot in slots.split('.') if slot.strip()]
