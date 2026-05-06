@@ -1912,7 +1912,7 @@ def download_card(ahdb_id):
         if os.path.isfile(taboo_en_file):
             with open(taboo_en_file, 'r', encoding='utf-8') as tf:
                 taboo_lists = json.load(tf)
-            active = next((t for t in taboo_lists if t.get('active')), taboo_lists[-1] if taboo_lists else None)
+            active = taboo_lists[-1] if taboo_lists else None
             if active:
                 for taboo_entry in active.get('cards', []):
                     base_code = taboo_entry['code']
