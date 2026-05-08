@@ -1267,9 +1267,6 @@ def get_se_rule(rule):
 
 def get_se_front_rule(card):
     rule = get_field(card, 'text', '')
-    taboo_mod = card.get('taboo_text', '') or card.get('taboo_real_text', '')
-    if taboo_mod:
-        rule = f'{rule}\n<b>Taboo:</b> {taboo_mod}'
     return get_se_rule(rule)
 
 def get_se_back_rule(card, sheet):
@@ -1929,16 +1926,13 @@ def download_card(ahdb_id):
                         continue
                     t_card = copy.deepcopy(base_card)
                     t_card['code'] = taboo_code
-                    # Text fields describe only the modification — keep original translated text
-                    # and store the taboo modification separately for display.
+                    # Keep original translated text; only apply non-text changes (xp, cost, etc.).
+                    # Cards with a full PT translation in taboo.json are handled above and skip this block.
                     text_fields = {'text', 'real_text', 'back_text', 'real_back_text'}
                     for key, value in taboo_entry.items():
-                        if key == 'code':
+                        if key == 'code' or key in text_fields:
                             continue
-                        if key in text_fields:
-                            t_card[f'taboo_{key}'] = value
-                        else:
-                            t_card[key] = value
+                        t_card[key] = value
                     ahdb[taboo_code] = t_card
 
         # NOTE: Patching special point attributes as separate fields.
